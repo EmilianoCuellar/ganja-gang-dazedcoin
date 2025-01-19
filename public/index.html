@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ganja Gang & DazedCoin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.6.9/ethers.umd.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+    body {
+      margin: 0;
+      font-family: 'Fredoka One', sans-serif;
+      margin-top: 0; /* Removes unnecessary spacing */
+      height: 100vh; /* Full viewport height */
+      background-image: url("/images/Page_Background.png"); 
+      background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: relative;
+  
+    }
+    .leaf {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 1.5s ease-in-out;
+    }
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease-in-out;
+    }
+    .navbar:hover {
+      background-color: rgba(0, 0, 0, 1);
+    }
+    .navbar-item {
+      transition: color 0.3s;
+    }
+    .navbar-item:hover {
+      color: #10b981;
+    }
+    .cta-button {
+      background: linear-gradient(90deg, #10b981, #2dd4bf);
+      color: black;
+      font-weight: bold;
+      transition: transform 0.3s ease-in-out;
+    }
+    .cta-button:hover {
+      transform: scale(1.05);
+    }
+    .progress-bar {
+      background: linear-gradient(90deg, #10b981, #2dd4bf);
+      height: 20px;
+      border-radius: 10px;
+    }
+    .progress-bar-container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+      
+    }
+    .number-input {
+      width: 50px;
+      text-align: center;
+      font-size: 1rem;
+      border: none;
+      background-color: white;
+      color: black;
+      border-radius: 5px;
+    }
+    .glass-card {
+      background: rgba(255, 2, 162, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: transform 0.3s ease-in-out;
+    }
+    .glass-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white">
+ <!-- Navbar -->
+<nav class="navbar flex justify-between items-center px-6 py-4">
+  <div class="text-2xl font-bold text-pink-400 ">Ganja Gang</div>
+  <ul class="flex space-x-6">
+  </ul>
+  <button id="connectWallet" class="cta-button px-4 py-2 rounded-lg">Connect Wallet</button>
+</nav>
+
+  <!-- Hero Section -->
+<section id="home" class="py-20 text-center">
+  <h1 class="text-5xl font-bold">Dazed Web3</h1>
+  <p class="text-lg my-6">The First Cannabis-Backed Blockchain.</p>
+  <div class="flex justify-center items-center space-x-4">
+    <button id="decrement" class="cta-button px-4 py-2 text-xl rounded-lg">-</button>
+    <input id="mintAmount" type="text" value="1" readonly class="text-black text-center w-16 text-xl border border-gray-300 rounded-lg" />
+    <button id="increment" class="cta-button px-4 py-2 text-xl rounded-lg">+</button>
+  </div>
+  <button id="mintButton" class="cta-button mt-6 px-6 py-3 text-lg font-bold rounded-lg">MINT</button>
+  <div class="mt-6">
+    <p id="mintedCount" class="text-lg">Minted: 0 / 4200</p>
+    <div class="progress-bar-container w-1/2 mx-auto mt-2">
+      <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
+    </div>
+  </div>
+</section>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const ganjaGangNFTAddress = "0x11f730d1f7a29F94C15cb1eb0d050B295eA7982b"; // Contract address
+      const mintPricePerNFT = ethers.utils.parseEther("0.08"); // Mint price in ETH per NFT
+      const maxMintAmount = 10; // Maximum NFTs per wallet
+      let userAddress = null;
+      let mintAmount = 1;
+  
+      // Elements
+      const mintAmountInput = document.getElementById("mintAmount");
+  
+      // Connect Wallet
+      async function connectWallet() {
+        if (!window.ethereum) {
+          alert("MetaMask is not installed. Please install MetaMask to continue.");
+          return;
+        }
+  
+        try {
+          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+          userAddress = accounts[0];
+          document.getElementById("connectWallet").innerText = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+        } catch (error) {
+          console.error("Wallet connection failed:", error);
+          alert("Failed to connect wallet. Please try again.");
+        }
+      }
+  
+      // Mint NFT
+      async function handleMint() {
+        if (!userAddress) {
+          alert("Please connect your wallet first!");
+          return;
+        }
+  
+        if (!window.ethereum) {
+          alert("Ethereum provider is not available.");
+          return;
+        }
+  
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          const contract = new ethers.Contract(
+            ganjaGangNFTAddress,
+            [
+              {
+                "inputs": [{ "internalType": "uint256", "name": "mintAmount", "type": "uint256" }],
+                "name": "mint",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+              }
+            ],
+            signer
+          );
+  
+          // Calculate total mint price
+          const totalMintPrice = mintPricePerNFT.mul(mintAmount);
+  
+          // Execute the mint function
+          const transaction = await contract.mint(mintAmount, { value: totalMintPrice });
+          await transaction.wait();
+  
+          alert(`Mint successful! Transaction Hash: ${transaction.hash}`);
+          console.log("Transaction details:", transaction);
+        } catch (error) {
+          console.error("Minting error:", error);
+          alert(`Minting failed: ${error.reason || "Check console for details."}`);
+        }
+      }
+  
+      // Increment and Decrement Logic
+      document.getElementById("decrement").addEventListener("click", () => {
+        if (mintAmount > 1) {
+          mintAmount--;
+          mintAmountInput.value = mintAmount;
+        } else {
+          alert("You cannot mint less than 1 NFT.");
+        }
+      });
+  
+      document.getElementById("increment").addEventListener("click", () => {
+        if (mintAmount < maxMintAmount) {
+          mintAmount++;
+          mintAmountInput.value = mintAmount;
+        } else {
+          alert("You cannot mint more than 10 NFTs at a time.");
+        }
+      });
+  
+      // Event Listeners
+      document.getElementById("connectWallet").addEventListener("click", connectWallet);
+      document.getElementById("mintButton").addEventListener("click", handleMint);
+    });
+  </script>
+  
+  </body>
+  </html>
+  
+<!-- Featured Media Grid -->
+<section class="featured-media py-16 px-8">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <!-- Image 1 -->
+    <div class="glass-card">
+      <img src="/images/0008.png" alt="Featured Media 1" 
+      class="object-contain rounded-lg shadow-lg animate-float">
+    </div>
+    <!-- Image 2 -->
+    <div class="glass-card">
+      <img src="images/exnft2.png" alt="Featured Media 2" 
+      class="object-contain rounded-lg shadow-lg animate-float">
+    </div>
+  </div>
+</section>
+
+<style>
+  /* General Section Spacing */
+  .featured-media {
+    margin-bottom: 60px; /* Add extra margin below the Featured Media section */
+  }
+
+  .intro-section {
+    margin-top: 60px; /* Add extra margin above the Intro section */
+  }
+
+  /* Button Styling */
+  .btn-explore {
+    transition: transform 0.3s ease, background 0.3s ease;
+  }
+
+  .btn-explore:hover {
+    transform: scale(1.05);
+  }
+
+  /* Floating Animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  glass-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+  }
+</style>
+
+<!-- Ganja Gang Intro -->
+<section id="intro-section" class="glass-card text-center">
+  <div class="intro-content text-center">
+    <h1 class="text-4xl font-extrabold text-white mb-6">This is Ganja Gang</h1>
+    <p class="text-lg text-white mb-6">
+      In the heart of the city, where the rhythm of life meets the essence of the herb, a cultural revolution has emerged—the <strong class="text-white">Ganja Gang NFT Collection</strong>. This isn’t just a collection; it’s a bold celebration of cannabis culture, an unapologetic tribute to the beats, vibes, and connections that shape our community.
+    </p>
+    <p class="text-lg text-white mb-6">
+      The Ganja Gang collection captures the energy of late-night block parties, rooftop jams, and unforgettable moments where music, art, and cannabis unite. Every NFT is a vibrant story brought to life on the blockchain, honoring the grind, the hustle, and the unbreakable bonds that keep the culture thriving.
+    </p>
+    <p class="text-lg text-white mb-8">
+      From the underground to the digital frontier, <strong class="text-white">Ganja Gang</strong> is the bridge connecting the past, present, and future. It’s more than art—it’s a movement. It’s a rallying cry for those who share a love for music, cannabis, and the streets that shaped them.
+    </p>
+  </div>
+</section>
+
+  <!-- Proof of Product Section -->
+  <section id="proof-of-product" class="py-16 px-6 bg-gray-900 text-gray-200">
+    <div class="container mx-auto">
+      <!-- Section Header -->
+      <h2 class="text-4xl font-bold text-center text-pink-400 mb-12">At the core of Ganja Gang lies a groundbreaking consensus mechanism.</h2>
+  
+      <!-- Overview -->
+      <div class="overview mb-16">
+        <p class="text-lg text-center">
+          Proof of Product (PoP) is a consensus mechanism designed to authenticate and verify the existence, authenticity, and movement of physical products in a blockchain network. It bridges the gap between real-world physical items and digital blockchain systems, ensuring transparency, trust, and compliance for industries that rely on accurate product tracking.
+        </p>
+      </div>
+  
+      <!-- How It Works -->
+      <div class="how-it-works grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <!-- Step 1 -->
+        <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Unique Identification</h3>
+          <p>
+            Each physical product is assigned a unique identifier that securely links it to the blockchain.
+          </p>
+        </div>
+        <!-- Step 2 -->
+        <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Blockchain Verification</h3>
+          <p>
+            Dispensaries, manufacturers, or distributors input the product's unique identifier into the blockchain.
+            This process verifies the product’s authenticity, origin, and compliance with regulations.
+          </p>
+        </div>
+        <!-- Step 3 -->
+        <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Reward Distribution</h3>
+          <p>
+            Participants like dispensaries and validators earn Dazed for verifying products, incentivizing consistent compliance and network security.
+          </p>
+        </div>
+      </div>
+  </section>
+  
+  <section id="dazedcoin-introduction" class="glass-card py-16 px-6 text-white">
+  <div class="container mx-auto">
+      <!-- Headline -->
+      <h2 class="text-4xl font-bold text-center text-white mb-8">Lighting Up the Future of Cannabis with Dazed</h2>
+      <p class="text-lg text-center mb-12 text-white">
+        A Privacy-First, Compliance-Driven Blockchain for Real-World Cannabis Innovation
+      </p>
+  
+      <!-- Body Content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Empowering Transactions -->
+        <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Empowering Transactions</h3>
+          <p>
+            Dazed facilitates seamless transfers and rewards across our network. Whether you’re verifying a new shipment of cannabis products or purchasing tokenized strains, Dazed underpins every interaction.
+          </p>
+        </div>
+  
+        <!-- Designed for Compliance -->
+        <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Designed for Compliance</h3>
+          <p>
+            Built for an industry heavily regulated and monitored, Dazed meets these demands with zk ID checks and tamper-proof product verification. It ensures age compliance and legal tracking without compromising user privacy.
+          </p>
+        </div>
+  
+        <!-- Deflationary Tokenomics -->
+        <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Deflationary Tokenomics</h3>
+          <p>
+            With a total supply capped at 420,000,000, Dazed incorporates burn mechanisms and dynamic rewards to balance supply and demand. Every verified product, ID check, or event-based bonus shapes a healthy and sustainable economy.
+          </p>
+        </div>
+  
+        <!-- Real-World Utility -->
+        <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Real-World Utility</h3>
+          <p>
+            Dazed isn’t just another cryptocurrency. It’s tied directly to physical cannabis products, bridging digital transactions and tangible goods. By backing real-world compliance and product flow.
+          </p>
+        </div>
+  
+        <!-- Community & Rewards -->
+        <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg col-span-2">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Community & Rewards</h3>
+          <p>
+            Participate in verifying cannabis products, help secure the network, and earn Dazed in return. Dispensaries stay compliant while customers enjoy a transparent, trust-based experience.
+          </p>
+        </div>
+      </div>
+    </div>
+    <style>
+      /* General Section Styling */
+      #dazedcoin-introduction
+      /* Feature Cards */
+      .feature {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+    
+      .feature:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 20px rgba(255, 0, 127, 0.4);
+      }
+    
+      /* Headline and Sub-Headline */
+      #dazedcoin-introduction h2 {
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+    
+      #dazedcoin-introduction p {
+        line-height: 1.8;
+        color: #ffffff;
+      }
+    </style>    
+  </section>
+
+  <section id="zk-feature" class="py-16 px-6 bg-gray-900 text-white">
+    <div class="container mx-auto">
+      <!-- Section Header -->
+      <h2 class="text-4xl font-bold text-center text-pink-400 mb-12">A Privacy-First Approach</h2>
+  
+      <!-- Introduction -->
+      <div class="intro text-center mb-12">
+        <p class="text-lg">
+          Zero-Knowledge (zk) technology enables users to prove they meet specific criteria—like being 21+ years old—without revealing sensitive personal information, such as their address or ID number. This privacy-first solution ensures security, compliance, and a seamless experience for dispensaries and customers.
+        </p>
+      </div>
+  
+      <!-- How It Works -->
+      <div class="how-it-works grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <!-- Step 1 -->
+        <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Step 1: Scan or Submit ID</h3>
+          <p>
+            The user uploads or scans their physical ID. A trusted verification service ensures the ID is legitimate and not fake.
+          </p>
+        </div>
+        <!-- Step 2 -->
+        <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Step 2: Generate a zk Proof</h3>
+          <p>
+            After validation, the system creates a Zero-Knowledge proof stating: “This ID belongs to a person who is at least 21 years old.” No other personal information is included.
+          </p>
+        </div>
+        <!-- Step 3 -->
+        <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 class="text-2xl font-bold text-pink-400 mb-4">Step 3: Submit Proof to Blockchain</h3>
+          <p>
+            The zk proof is uploaded to the blockchain. Dispensaries reference this proof to verify age compliance, ensuring privacy and security.
+          </p>
+        </div>
+      </div>
+  
+      <!-- Benefits -->
+      <div class="benefits mb-16">
+        <h3 class="text-3xl font-bold text-center text-pink-400 mb-8">Key Benefits</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Benefit 1 -->
+          <div class="benefit bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h4 class="text-xl font-bold text-pink-400 mb-4">Privacy</h4>
+            <p>
+              Users maintain control of their personal data. They only prove they’re above the legal age without revealing sensitive information like their address or ID number.
+            </p>
+          </div>
+          <!-- Benefit 2 -->
+          <div class="benefit bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h4 class="text-xl font-bold text-pink-400 mb-4">Compliance</h4>
+            <p>
+              Dispensaries meet legal age-verification requirements while keeping user data private. Regulators can confirm compliance without accessing personal information.
+            </p>
+          </div>
+          <!-- Benefit 3 -->
+          <div class="benefit bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h4 class="text-xl font-bold text-pink-400 mb-4">Security</h4>
+            <p>
+              zk proofs are cryptographically secure and tamper-proof. They prevent fraud and eliminate the need for vulnerable data storage.
+            </p>
+          </div>
+          <!-- Benefit 4 -->
+          <div class="benefit bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h4 class="text-xl font-bold text-pink-400 mb-4">Seamless Experience</h4>
+            <p>
+              Once verified, users can reuse their zk proof for future visits, making repeat purchases fast and hassle-free.
+            </p>
+          </div>
+          <!-- Benefit 5 -->
+          <div class="benefit bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h4 class="text-xl font-bold text-pink-400 mb-4">Scalability</h4>
+            <p>
+              Thousands or millions of zk proofs can be stored and verified on-chain, enabling fast, efficient age verification for dispensaries worldwide.
+            </p>
+          </div>
+        </div>
+      </div>
+  
+    <style>
+      /* General Section Styling */
+      #zk-feature 
+      .step, .benefit, .real-world {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+    
+      .step:hover, .benefit:hover, .real-world:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 20px rgba(255, 0, 127, 0.4);
+      }
+      
+    </style>  
+  </section>
+
+<section id="day-in-dispensary" class="glass-card py-16 px-6 text-white">
+  <div class="container mx-auto">
+    <!-- Section Header -->
+    <h2 class="text-4xl font-bold text-center text-white mb-12">A Day in a Dispensary</h2>
+    
+    <!-- Steps Overview -->
+    <div class="steps grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Step 1: Product Arrival & Verification -->
+      <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h3 class="text-2xl font-bold text-pink-400 mb-4">Product Arrival & Verification</h3>
+        <p>
+          A new shipment arrives. Dispensary staff scan each package number, verifying it on-chain. If successful, the product is securely recorded on the blockchain, and staff earn <strong class="text-pink-400">Dazed</strong> as a reward.
+        </p>
+      </div>
+
+      <!-- Step 2: ID Check -->
+      <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h3 class="text-2xl font-bold text-pink-400 mb-4">ID Check</h3>
+        <p>
+          A customer arrives to make a purchase. They scan their ID using an app that generates a <strong class="text-pink-400">zero-knowledge proof (zk-proof)</strong>, confirming they’re at least 21 years old without exposing personal details like address or ID number.
+        </p>
+      </div>
+
+      <!-- Step 3: Transaction & Reward -->
+      <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h3 class="text-2xl font-bold text-pink-400 mb-4">Transaction & Reward</h3>
+        <p>
+          The purchase is finalized on the blockchain. The reward mechanism triggers, issuing Dazed to participants, and a portion of Dazed is burned. The dispensary sees real-time updates in their digital ledger, ensuring transparency.
+        </p>
+      </div>
+
+      <!-- Step 4: Global Scale -->
+      <div class="step bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h3 class="text-2xl font-bold text-pink-400 mb-4">Global Scale</h3>
+        <p>
+          Imagine thousands of dispensaries worldwide doing this simultaneously. <strong class="text-pink-400">Dazed</strong> dynamically adjusts rewards to prevent inflation, ensuring a stable and sustainable ecosystem.
+        </p>
+      </div>
+      <style>
+        /* General Section Styling */
+        #day-in-dispensary 
+        /* Step Card Styling */
+        .step {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+      
+        .step:hover {
+          transform: translateY(-10px);
+          box-shadow: 0 15px 20px rgba(255, 0, 127, 0.4);
+        }
+      
+        /* CTA Button Styling */
+        .cta a {
+          transition: transform 0.3s ease, background 0.3s ease;
+        }
+      
+        .cta a:hover {
+          transform: scale(1.05);
+        }
+      </style>      
+    </div>
+  </div>
+</section>
+
+<section id="roadmap" class="py-16 px-6 text-gray-200">
+  <div class="container mx-auto">
+    <!-- Section Header -->
+    <h2 class="text-4xl font-bold text-center text-white mb-12">Roadmap</h2>
+
+    <!-- Timeline -->
+    <div class="timeline relative">
+      <!-- Vertical Line -->
+      <div class="timeline-line absolute left-1/2 transform -translate-x-1/2 bg-teal-400 h-full w-1"></div>
+      
+      <!-- Phase 1 -->
+      <div class="timeline-item relative flex flex-col items-center text-center mb-12">
+        <div class="timeline-icon bg-green-400 text-white text-xl font-bold rounded-full w-12 h-12 flex items-center justify-center mb-4">1</div>
+        <div class="glass-card w-90 bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h3 class="text-xl font-bold text-pink-400 mb-2">Phase 1: Launch</h3>
+          <p>Mint Ganja Gang NFT collection and build the core blockchain infrastructure.</p>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="timeline-item relative flex flex-col items-center text-center mb-12">
+        <div class="timeline-icon  bg-green-400 text-white text-xl font-bold rounded-full w-12 h-12 flex items-center justify-center mb-4">2</div>
+        <div class="glass-card w-90 bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h3 class="text-xl font-bold text-pink-400 mb-2">Phase 2: Marketplace</h3>
+          <p>Launch reward mechanisms for consumers and dispensaries using DazedCoin.</p>
+        </div>
+      </div>
+
+      <!-- Phase 3 -->
+      <div class="timeline-item relative flex flex-col items-center text-center mb-12">
+        <div class="timeline-icon bg-green-400 text-white text-xl font-bold rounded-full w-12 h-12 flex items-center justify-center mb-4">3</div>
+        <div class="glass-card w-90 bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h3 class="text-xl font-bold text-pink-400 mb-2">Phase 3: Rewards</h3>
+          <p>Enable tokenized trading for cannabis products and expand partnerships.</p>
+        </div>
+      </div>
+
+      <!-- Phase 4 -->
+      <div class="timeline-item relative flex flex-col items-center text-center">
+        <div class="timeline-icon bg-green-400 text-white text-xl font-bold rounded-full w-12 h-12 flex items-center justify-center mb-4">4</div>
+        <div class="glass-card w-90 bg-gray-800 p-8 rounded-lg shadow-lg">
+          <h3 class="text-xl font-bold text-pink-400 mb-2">Phase 4: Expansion</h3>
+          <p>Scale blockchain operations globally to support the cannabis industry worldwide.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    /* General Section Styling */
+    #roadmap 
+    /* Timeline Styling */
+    .timeline {
+      position: relative;
+    }
+  
+    .timeline-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 0;
+    }
+  
+    .timeline-item {
+      position: relative;
+      z-index: 1;
+    }
+  
+    /* Timeline Icons */
+    .timeline-icon {
+      z-index: 2;
+    }
+  
+    /* Glass Card Styling */
+    .glass-card {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  
+    /* Hover Effects */
+    .glass-card:hover {
+      transform: translateY(-10px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 10px 15px rgba(255, 0, 127, 0.4);
+    }
+  </style>  
+</section>
+
+
+    <!-- Footer -->
+<footer class="py-8 bg-gray-900 text-center">
+  <div class="container mx-auto">
+    <h3 class="text-xl font-bold text-pink-400 mb-2">Contact Us & Follow Us</h3>
+    <p class="mb-4">Stay connected and follow our journey!</p>
+    <div class="flex justify-center space-x-4 mb-4">
+      <a href="https://twitter.com/ganjagangNFT" class="text-white hover:text-pink-400 transition duration-300">Twitter</a>
+      <a href="#" class="text-white hover:text-pink-400 transition">Instagram</a>
+      <a href="https://discord.gg/SjXehVVnMP" class="text-white hover:text-pink-400 transition duration-300">Discord</a>
+      <a href="mailto:dazedweb3@gmail.com" class="text-white hover:text-pink-400 transition duration-300">Email</a>
+    </div>
+    <p class="text-white text-sm">&copy; 2025 Ganja Gang & DazedCoin. All rights reserved.</p>
+  </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // Connect Wallet Logic
+    const connectWalletButton = document.getElementById("connectWallet");
+    connectWalletButton.addEventListener("click", async () => {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          alert("Wallet Connected Successfully!");
+        } catch (error) {
+          console.error("Wallet connection failed", error);
+          alert("Failed to connect wallet. Please try again.");
+        }
+      } else {
+        alert("MetaMask is not installed. Please install MetaMask to connect your wallet.");
+      }
+    });
+
+    // Fade-in Animation on Scroll
+    const fadeElements = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('opacity-100');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    fadeElements.forEach(el => {
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
+
