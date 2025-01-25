@@ -15,15 +15,47 @@
       margin-top: 0; /* Removes unnecessary spacing */
       height: 100vh; /* Full viewport height */
       background-image: url("/images/Page_Background.png"); 
-      background-size: 100% 100%;
+      background-size: cover; /* Ensures the background image scales properly */
+      background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  position: relative;
   
     }
     .leaf {
       animation: float 3s ease-in-out infinite;
     }
+
+    /* Background Image Adjustments for Mobile */
+    @media (max-width: 768px) {
+      body {
+        background-attachment: scroll; /* Prevents fixed background distortion on mobile */
+        background-size: 150%; /* Ensures the background fills the screen without distortion */
+      }
+    }
+/* Section Adjustments */
+    .dazedcoin-introduction {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    /* Responsive Layout */
+    @media (max-width: 768px) {
+      .dazedcoin-introduction {
+        padding: 1rem;
+      }
+
+      h1, h2 {
+        font-size: 1.5rem; /* Adjusts headline size for mobile */
+      }
+
+      p {
+        font-size: 1rem; /* Adjusts paragraph size for readability */
+      }
+    }
+
     @keyframes fadeIn {
       0% { opacity: 0; transform: translateY(10px); }
       100% { opacity: 1; transform: translateY(0); }
@@ -331,15 +363,15 @@
   </section>
   
   <section id="dazedcoin-introduction" class="glass-card py-16 px-6 text-white">
-  <div class="container mx-auto">
+    <div class="container mx-auto">
       <!-- Headline -->
       <h2 class="text-4xl font-bold text-center text-white mb-8">Lighting Up the Future of Cannabis with Dazed</h2>
-      <p class="text-lg text-center mb-12 text-white">
+      <p class="text-lg text-center mb-6 text-white">
         A Privacy-First, Compliance-Driven Blockchain for Real-World Cannabis Innovation
       </p>
   
       <!-- Body Content -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
         <!-- Empowering Transactions -->
         <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg">
           <h3 class="text-2xl font-bold text-pink-400 mb-4">Empowering Transactions</h3>
@@ -373,7 +405,7 @@
         </div>
   
         <!-- Community & Rewards -->
-        <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg col-span-2">
+        <div class="feature bg-gray-800 p-6 rounded-lg shadow-lg">
           <h3 class="text-2xl font-bold text-pink-400 mb-4">Community & Rewards</h3>
           <p>
             Participate in verifying cannabis products, help secure the network, and earn Dazed in return. Dispensaries stay compliant while customers enjoy a transparent, trust-based experience.
@@ -383,29 +415,62 @@
     </div>
     <style>
       /* General Section Styling */
-      #dazedcoin-introduction
-      /* Feature Cards */
+      #dazedcoin-introduction {
+        padding: 2rem 1rem; /* Adjust padding for smaller screens */
+      }
+    
+      /* Grid and Responsive Fixes */
+      #dazedcoin-introduction .grid {
+        display: grid;
+        grid-template-columns: 1fr; /* Default: 1 column */
+        gap: 1.5rem;
+      }
+    
+      @media (min-width: 640px) { /* For small screens and above (e.g., tablets) */
+        #dazedcoin-introduction .grid {
+          grid-template-columns: repeat(2, 1fr); /* Two columns */
+        }
+      }
+    
+      /* Feature Card Styling */
       .feature {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.3s ease-in-out;
       }
     
       .feature:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 20px rgba(255, 0, 127, 0.4);
+        box-shadow: 0px 10px 15px rgba(255, 0, 127, 0.4);
       }
     
-      /* Headline and Sub-Headline */
+      /* Headline and Paragraph Styling */
       #dazedcoin-introduction h2 {
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        font-size: 2rem; /* Reduce headline size on smaller screens */
+        text-align: center;
       }
     
       #dazedcoin-introduction p {
-        line-height: 1.8;
-        color: #ffffff;
+        font-size: 1rem; /* Adjust text size for readability */
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+    
+      /* Mobile Adjustments */
+      @media (max-width: 768px) {
+        #dazedcoin-introduction {
+          padding: 1.5rem 1rem;
+        }
+    
+        #dazedcoin-introduction h2 {
+          font-size: 1.75rem; /* Further reduce headline size */
+        }
+    
+        .feature {
+          padding: 1rem; /* Reduce padding inside cards */
+        }
       }
     </style>    
   </section>
+  
 
   <section id="zk-feature" class="py-16 px-6 bg-gray-900 text-white">
     <div class="container mx-auto">
@@ -663,7 +728,7 @@
     <p class="mb-4">Stay connected and follow our journey!</p>
     <div class="flex justify-center space-x-4 mb-4">
       <a href="https://twitter.com/ganjagangNFT" class="text-white hover:text-pink-400 transition duration-300">Twitter</a>
-      <a href="#" class="text-white hover:text-pink-400 transition">Instagram</a>
+      <a href="https://www.instagram.com/dazedweb3/" class="text-white hover:text-pink-400 transition">Instagram</a>
       <a href="https://discord.gg/SjXehVVnMP" class="text-white hover:text-pink-400 transition duration-300">Discord</a>
       <a href="mailto:dazedweb3@gmail.com" class="text-white hover:text-pink-400 transition duration-300">Email</a>
     </div>
