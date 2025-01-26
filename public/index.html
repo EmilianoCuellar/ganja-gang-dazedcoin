@@ -137,6 +137,7 @@
 <section id="home" class="py-20 text-center">
   <h1 class="text-5xl font-bold">Dazed Web3</h1>
   <p class="text-lg my-6">The First Cannabis-Backed Blockchain.</p>
+  <p class="text-lg my-4">Mint Price: 0.08 ETH</p>
   <div class="flex justify-center items-center space-x-4">
     <button id="decrement" class="cta-button px-4 py-2 text-xl rounded-lg">-</button>
     <input id="mintAmount" type="text" value="1" readonly class="text-black text-center w-16 text-xl border border-gray-300 rounded-lg" />
@@ -144,11 +145,32 @@
   </div>
   <button id="mintButton" class="cta-button mt-6 px-6 py-3 text-lg font-bold rounded-lg">MINT</button>
   <div class="mt-6">
-    <p id="mintedCount" class="text-lg">Minted: 0 / 4200</p>
+    <p id="mintedCount" class="text-lg">Minted: 20 / 4200</p>
     <div class="progress-bar-container w-1/2 mx-auto mt-2">
       <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
     </div>
   </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const totalSupply = 4200; // Total NFT supply
+      const initialMinted = 20; // First 20 NFTs already minted
+      let mintedCount = initialMinted; // Start the minted count at 20
+  
+      // Elements
+      const mintedCountDisplay = document.getElementById("mintedCount");
+      const progressBar = document.getElementById("progressBar");
+  
+      // Update the progress bar
+      function updateProgress() {
+        const progress = (mintedCount / totalSupply) * 100;
+        mintedCountDisplay.innerText = `Minted: ${mintedCount} / ${totalSupply}`;
+        progressBar.style.width = `${progress}%`;
+      }
+  
+      // Initialize progress bar on page load
+      updateProgress();
+    });
+  </script>
 </section>
 
 
