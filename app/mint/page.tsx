@@ -25,6 +25,7 @@ const CONTRACT = "0xf0893Cbbc7362449f8C4Bf24144a34f3eEe6485c" as `0x${string}`;
 const asBigint = (v: unknown): bigint | undefined =>
   typeof v === "bigint" ? v : undefined;
 
+
 const asBool = (v: unknown): boolean => Boolean(v);
 
 export default function MintPage() {
@@ -117,13 +118,15 @@ export default function MintPage() {
 
     const value = activeUnitPrice * BigInt(qty);
     const proof = isPresaleActive ? merkleProof : [];
+    
+    const qtyBigInt = BigInt(qty);
 
     try {
       await writeContractAsync({
         abi: GANJA_GANG_ABI,
         address: CONTRACT,
         functionName: "mint",
-        args: [qty, proof],
+        args: [qtyBigInt, proof],
         value,
         chainId: 1
       });
