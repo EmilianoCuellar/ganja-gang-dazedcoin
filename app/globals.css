@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gg-primary: #ff2d55;
+  --gg-accent: #04d361;
+}
+
+html, body {
+  height: 100%;
+}
