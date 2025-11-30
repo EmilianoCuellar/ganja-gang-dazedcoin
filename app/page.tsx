@@ -394,23 +394,46 @@ const brand = {
       </Section>
 
       {/* Deck + Contact */}
-      <Section id="deck">
-        <div className="grid items-center gap-6 md:grid-cols-2">
-          <Card>
-            <h3 className="text-lg font-semibold">Investor Materials</h3>
-           
-            <a href="contact" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400">Request Access <ArrowRight size={16}/></a>
-          </Card>
-          <Card id="contact">
-            <h3 className="text-lg font-semibold">Contact</h3>
-            <p className="mt-2 text-sm text-zinc-300">Interested in pilots, partnerships, or investing? Let’s talk.</p>
-            <div className="mt-3 flex flex-wrap gap-3">
-              <a className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500" href="mailto:invest@ganjagang.xyz"><Mail size={16}/> contact@ganjagang.xyz</a>
-              <a className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500" href="https://x.com/ganjagangNFT"><Twitter size={16}/> @ganjagangNFT</a>
-            </div>
-          </Card>
+<Section id="deck">
+  <div className="grid items-center gap-6 md:grid-cols-2">
+    <Card>
+      <h3 className="text-lg font-semibold">Investor Materials</h3>
+      {/* use an in-page anchor to the contact section */}
+      <a
+        href="#contact"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400"
+      >
+        Request Access <ArrowRight size={16} />
+      </a>
+    </Card>
+
+    {/* put the id on a wrapper instead of Card (Card doesn't accept `id`) */}
+    <div id="contact">
+      <Card>
+        <h3 className="text-lg font-semibold">Contact</h3>
+        <p className="mt-2 text-sm text-zinc-300">
+          Interested in pilots, partnerships, or investing? Let’s talk.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <a
+            className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500"
+            href="mailto:contact@ganjagang.xyz"
+          >
+            <Mail size={16} /> contact@ganjagang.xyz
+          </a>
+          <a
+            className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-4 py-2 text-sm hover:border-zinc-500"
+            href="https://x.com/ganjagangNFT"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Twitter size={16} /> @ganjagangNFT
+          </a>
         </div>
-      </Section>
+      </Card>
+    </div>
+  </div>
+</Section>
   
 
       {/* Footer */}

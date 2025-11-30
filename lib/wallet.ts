@@ -33,7 +33,6 @@ export function initWeb3ModalSingleton() {
   createWeb3Modal({
     wagmiConfig,
     projectId,
-    chains,
     themeMode: "dark",
     themeVariables: { "--w3m-accent": "#ff2d55" },
     enableAnalytics: true,

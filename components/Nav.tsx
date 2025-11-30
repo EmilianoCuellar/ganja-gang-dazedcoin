@@ -90,10 +90,13 @@ export default function Nav() {
           </Link>
           <Link href="/inventory/walkthrough" className="block rounded-lg px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800/60">
           <div className="relative">
-  <button
-    onClick={() => setEcoOpen(false) || setOpen(false)} // close others
-    className="sr-only"
-  />
+          <button
+  onClick={() => {
+    setEcoOpen(false);
+    setOpen(false);   // close others
+  }}
+  className="sr-only"
+/>
 </div>
 </Link>
         </nav>

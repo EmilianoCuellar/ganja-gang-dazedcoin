@@ -28,11 +28,24 @@ type Pt = { t: number; v: number };
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
+type InventoryTooltipEntry = {
+    value: number;
+    payload?: {
+      name?: string;
+    };
+  };
+  
+  interface InventoryTooltipProps {
+    active?: boolean;
+    payload?: InventoryTooltipEntry[];
+    label?: string;
+  }
 
 /** Custom tooltip for Inventory bar chart (high contrast + shadow) */
-function InventoryTooltip({ active, payload, label }: TooltipProps<number, string>) {
+function InventoryTooltip({ active, payload, label }: InventoryTooltipProps) {
   if (!active || !payload || !payload.length) return null;
   const p = payload[0];
+
   return (
     <div
       className="rounded-lg border border-zinc-700/80 bg-[#0c0d10]/95 px-3 py-2 text-xs text-zinc-200 shadow-2xl backdrop-blur"
