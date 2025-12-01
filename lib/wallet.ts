@@ -1,60 +1,42 @@
 // lib/wallet.ts
 "use client";
 
-import { createConfig, http } from "wagmi";
-import { mainnet, polygon, arbitrum, optimism } from "wagmi/chains";
+import { http, createConfig } from "wagmi";
+import { mainnet, arbitrum, optimism } from "wagmi/chains";
 import { walletConnect, injected, coinbaseWallet } from "wagmi/connectors";
-import { createWeb3Modal } from "@web3modal/wagmi/react";
 
-// ---------------- Env + constants ----------------
-const envProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+export const projectId =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "";
 
-if (!envProjectId) {
-  throw new Error("Missing NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID");
+if (!projectId) {
+  console.warn(
+    "NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is missing. Web3Modal will not work until this is set."
+  );
 }
 
-// Explicit string so TS stops complaining
-export const WALLETCONNECT_PROJECT_ID: string = envProjectId;
+// Chains supported in the app + modal
+export const chains = [mainnet, arbitrum, optimism] as const;
 
-// ---------------- wagmi config ----------------
+// dApp metadata (shown in wallet UIs)
+const metadata = {
+  name: "Ganja Gang",
+  description: "Ganja Gang PoP + zk-ID minting and Dazed ecosystem",
+  url: "https://ganjagang.xyz",
+  icons: ["https://ganjagang.xyz/favicon.ico"],
+};
+
+// Wagmi config (no MetaMask SDK, so no async-storage error)
 export const wagmiConfig = createConfig({
-  chains: [mainnet, polygon, arbitrum, optimism],
+  chains,
   transports: {
     [mainnet.id]: http(),
-    [polygon.id]: http(),
     [arbitrum.id]: http(),
     [optimism.id]: http(),
   },
   connectors: [
-    walletConnect({
-      projectId: WALLETCONNECT_PROJECT_ID,
-      showQrModal: false,
-    }),
-    injected({
-      shimDisconnect: true,
-    }),
-    coinbaseWallet({
-      appName: "Ganja Gang",
-    }),
+    walletConnect({ projectId, showQrModal: false, metadata }),
+    injected({ shimDisconnect: true }),
+    coinbaseWallet({ appName: "Ganja Gang" }),
   ],
+  ssr: true,
 });
-
-// ---------------- Web3Modal singleton init ----------------
-let _w3mInited = false;
-
-export function initWeb3ModalSingleton() {
-  if (_w3mInited) return;
-  if (typeof window === "undefined") return; // SSR guard
-
-  createWeb3Modal({
-    wagmiConfig,
-    projectId: WALLETCONNECT_PROJECT_ID, // now typed as string
-    themeMode: "dark",
-    themeVariables: {
-      "--w3m-accent": "#ff2d55",
-    },
-    enableAnalytics: true,
-  });
-
-  _w3mInited = true;
-}

@@ -2,9 +2,17 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import WalletButton from "@/components/WalletButton";
 import { Menu, X, ChevronDown, Building2, ShieldCheck, Boxes, Link2, FileCode, BookOpen, LifeBuoy, IdCard } from "lucide-react";
+import dynamic from "next/dynamic";
 
+const WalletButton = dynamic(() => import("./WalletButton"), {
+    ssr: false,
+    loading: () => (
+      <button className="rounded-xl border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300">
+        Connect Wallet
+      </button>
+    ),
+  });
 
 
 export default function Nav() {
